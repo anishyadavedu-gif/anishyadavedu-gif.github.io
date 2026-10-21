@@ -10,10 +10,11 @@
 <style>
 html{color-scheme:light}
 body{margin:0}
-/* Layout: a staircase. Each track climbs through numbered levels; every level is learn, build, result. */
+/* Layout: a staircase. Each track climbs through numbered levels. Each level is a short card with a "See more" drawer. */
 :root {
   --bg: #f1f4f7;
   --surface: #ffffff;
+  --surface-2: #f6f8fa;
   --fg: #14202b;
   --muted: #55646f;
   --line: #d3dce3;
@@ -28,13 +29,13 @@ body{margin:0}
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0e151b; --surface: #16212a; --fg: #e8eef2; --muted: #98a8b4; --line: #2a3945;
+    --bg: #0e151b; --surface: #16212a; --surface-2: #1b2832; --fg: #e8eef2; --muted: #98a8b4; --line: #2a3945;
     --accent: #3fc4af; --accent-soft: #123a35; --warn: #e5a54b; --warn-soft: #3a2a10; --chart-grid: #26343f;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0e151b; --surface: #16212a; --fg: #e8eef2; --muted: #98a8b4; --line: #2a3945;
+  --bg: #0e151b; --surface: #16212a; --surface-2: #1b2832; --fg: #e8eef2; --muted: #98a8b4; --line: #2a3945;
   --accent: #3fc4af; --accent-soft: #123a35; --warn: #e5a54b; --warn-soft: #3a2a10; --chart-grid: #26343f;
   color-scheme: dark;
 }
@@ -48,7 +49,7 @@ body {
 }
 .wrap { max-width: 920px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; }
 a { color: var(--accent); }
-a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 header { display: flex; flex-direction: column; gap: 12px; }
 .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
@@ -76,14 +77,17 @@ nav button:hover:not([aria-selected="true"]) { border-color: var(--fg); }
 .track-head { display: flex; flex-direction: column; gap: 10px; }
 .track-head h2 { font-family: var(--font-display); font-size: clamp(26px, 4.5vw, 36px); margin: 0; letter-spacing: -.01em; }
 .track-head p { margin: 0; color: var(--muted); max-width: 62ch; }
+.head-row { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: center; }
 .meter { display: flex; gap: 6px; align-items: center; }
 .meter i { display: block; height: 8px; flex: 0 0 56px; border-radius: 2px; background: var(--line); }
 .meter i.on { background: var(--accent); }
 .meter span { font-family: var(--font-mono); font-size: 12px; color: var(--muted); margin-left: 8px; }
+.expand-all { font: 500 13px/1 var(--font-mono); color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; cursor: pointer; }
+.expand-all:hover { border-color: var(--fg); }
 
-.steps { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 20px; position: relative; }
+.steps { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 20px; }
 .step { --i: 0; display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 14px; }
-.lvl { font-family: var(--font-mono); font-size: 13px; font-weight: 500; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.lvl { font-family: var(--font-mono); font-size: 13px; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .lvl b { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; color: var(--fg); font-weight: 500; }
 .lvl::after { content: ""; flex: 1; width: 1px; background: var(--line); }
 .step:last-child .lvl::after { display: none; }
@@ -102,6 +106,30 @@ nav button:hover:not([aria-selected="true"]) { border-color: var(--fg); }
 .lbr dd { margin: 0; font-size: 15px; }
 .tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .tags span { font-family: var(--font-mono); font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 2px 8px; }
+
+/* See more drawer */
+details.more { border-top: 1px solid var(--line); padding-top: 4px; }
+details.more > summary {
+  list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+  font: 500 13px/1 var(--font-mono); color: var(--accent); padding: 10px 0; user-select: none;
+}
+details.more > summary::-webkit-details-marker { display: none; }
+details.more > summary .chev { width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translateY(-2px); transition: transform .2s; }
+details.more[open] > summary .chev { transform: rotate(-135deg) translate(-1px, -1px); }
+details.more > summary .less { display: none; }
+details.more[open] > summary .less { display: inline; }
+details.more[open] > summary .more-lbl { display: none; }
+.more-body { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 24px; padding: 8px 0 4px; }
+.more-text { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.more-text h4 { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 4px; font-weight: 500; }
+.more-text p { margin: 0; font-size: 15px; }
+.todo { color: var(--muted); font-style: italic; }
+.links { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 14px; }
+.shots { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.shot { margin: 0; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.shot img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface-2); }
+.shot figcaption { font-size: 13px; color: var(--muted); }
+.slot { border: 1px dashed var(--line); border-radius: 6px; background: var(--surface-2); min-height: 120px; display: grid; place-items: center; padding: 12px; text-align: center; font-family: var(--font-mono); font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
 
 .panel[hidden] { display: none; }
 .panel { display: flex; flex-direction: column; gap: 24px; }
@@ -127,6 +155,9 @@ footer { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wr
 @media (min-width: 900px) {
   .step { margin-left: calc(var(--i) * 28px); }
 }
+@media (max-width: 720px) {
+  .more-body { grid-template-columns: 1fr; }
+}
 @media (max-width: 640px) {
   .lbr { grid-template-columns: 1fr; gap: 10px; }
   .step { grid-template-columns: 34px minmax(0, 1fr); gap: 10px; }
@@ -135,7 +166,10 @@ footer { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wr
 }
 @media (prefers-reduced-motion: no-preference) {
   .panel:not([hidden]) { animation: rise .35s ease-out; }
-  @keyframes rise { from { opacity: .0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+}
+@media (prefers-reduced-motion: reduce) {
+  details.more > summary .chev { transition: none; }
 }
 </style>
 </head>
@@ -145,8 +179,8 @@ footer { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wr
   <header>
     <div class="eyebrow">Anish Yadav / Arizona State University / Supply Chain + Data</div>
     <h1>Every skill gets a project. Every project raises the bar.</h1>
-    <p class="lede">A running record of what I am learning, what I built with it, and what the next level looks like. Three tracks: data analysis, computer science, and the things I do for fun.</p>
-    <div class="demo-note">Demo build. Entries come from my resume and current plans. Items marked SAMPLE (like the chess ratings) are placeholders to replace with real numbers.</div>
+    <p class="lede">A running record of what I am learning, what I built with it, and what the next level looks like. Tap "See more" on any level for the full story.</p>
+    <div class="demo-note" id="demo-note">Demo build. Entries come from my resume and current plans. Muted italic text is a prompt to replace with my own words. Items marked SAMPLE are placeholders.</div>
   </header>
 
   <section class="now" aria-labelledby="now-h">
@@ -167,109 +201,9 @@ footer { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wr
     <button role="tab" id="tab-personal" aria-controls="personal" aria-selected="false" data-tab="personal">Personal</button>
   </nav>
 
-  <!-- DATA -->
-  <section class="panel" id="data" role="tabpanel" aria-labelledby="tab-data">
-    <div class="track-head">
-      <h2>Data analysis</h2>
-      <p>From spreadsheet models to a system the plant actually used. Each level had to work on real data.</p>
-      <div class="meter" aria-label="Level 3 of 4 reached"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><span>Level 3 of 4</span></div>
-    </div>
-    <ol class="steps">
-      <li class="step done" style="--i:0"><div class="lvl"><b>L1</b></div>
-        <article class="card">
-          <div class="card-top"><h3>Spreadsheet modeling</h3><span class="pill done">Done</span></div>
-          <dl class="lbr">
-            <div><dt>Learned</dt><dd>PivotTables, XLOOKUP, What-If Analysis, Solver, Monte Carlo simulation.</dd></div>
-            <div><dt>Built</dt><dd>Inventory and queuing models for supply chain coursework.</dd></div>
-            <div><dt>Result</dt><dd>A habit of testing assumptions in a model before trusting an answer.</dd></div>
-          </dl>
-          <div class="tags"><span>Excel</span><span>Solver</span><span>Forecasting</span></div>
-        </article></li>
-      <li class="step done" style="--i:1"><div class="lvl"><b>L2</b></div>
-        <article class="card">
-          <div class="card-top"><h3>Dashboards in Tableau</h3><span class="pill done">Course project</span></div>
-          <dl class="lbr">
-            <div><dt>Learned</dt><dd>Cleaning a raw dataset and choosing charts that answer one question each.</dd></div>
-            <div><dt>Built</dt><dd>A college major ROI dashboard for SCM 315.</dd></div>
-            <div><dt>Result</dt><dd>A raw table turned into something a reader can explore on their own.</dd></div>
-          </dl>
-          <div class="tags"><span>Tableau</span><span>Data visualization</span></div>
-        </article></li>
-      <li class="step done" style="--i:2"><div class="lvl"><b>L3</b></div>
-        <article class="card">
-          <div class="card-top"><h3>A system at plant scale</h3><span class="pill done">Shipped at PepsiCo</span></div>
-          <dl class="lbr">
-            <div><dt>Learned</dt><dd>SAP data, SharePoint governance, and how to get a team to adopt a new tool.</dd></div>
-            <div><dt>Built</dt><dd>One home for BOMs, vendor records, and SAP data on 1,600+ pieces of equipment, replacing a 20TB shared drive. Added QR asset tagging.</dd></div>
-            <div><dt>Result</dt><dd>Supply gaps closed with the Regional VP, in an initiative projected at $1.6M+ in savings.</dd></div>
-          </dl>
-          <div class="tags"><span>SharePoint</span><span>PowerApps</span><span>Microsoft Lists</span><span>SAP</span></div>
-        </article></li>
-      <li class="step" style="--i:3"><div class="lvl"><b>L4</b></div>
-        <article class="card">
-          <div class="card-top"><h3>Analysis in code</h3><span class="pill next">Next</span></div>
-          <dl class="lbr">
-            <div><dt>Learn</dt><dd>SQL queries, then Python with pandas for repeatable analysis.</dd></div>
-            <div><dt>Build</dt><dd>Player stats and trends from the poker ledger, with a short written finding.</dd></div>
-            <div><dt>Result</dt><dd>To be filled in when it ships.</dd></div>
-          </dl>
-          <div class="tags"><span>SQL</span><span>Python</span><span>pandas</span></div>
-        </article></li>
-    </ol>
-  </section>
+  <section class="panel" id="data" role="tabpanel" aria-labelledby="tab-data"></section>
+  <section class="panel" id="cs" role="tabpanel" aria-labelledby="tab-cs" hidden></section>
 
-  <!-- CS -->
-  <section class="panel" id="cs" role="tabpanel" aria-labelledby="tab-cs" hidden>
-    <div class="track-head">
-      <h2>Computer science</h2>
-      <p>Learning to code from the ground up by shipping small things first, then bigger ones.</p>
-      <div class="meter" aria-label="Level 1 of 4 reached"><i class="on"></i><i></i><i></i><i></i><span>Level 1 of 4</span></div>
-    </div>
-    <ol class="steps">
-      <li class="step done" style="--i:0"><div class="lvl"><b>L1</b></div>
-        <article class="card">
-          <div class="card-top"><h3>A tool I use every day</h3><span class="pill done">Built</span></div>
-          <dl class="lbr">
-            <div><dt>Learned</dt><dd>Python and Flask, calling an AI model and Google APIs from code, automating runs with GitHub Actions.</dd></div>
-            <div><dt>Built</dt><dd>Commitment Assistant, a planner for the week across jobs, school, and clubs.</dd></div>
-            <div><dt>Result</dt><dd>A working app I rely on, and proof I can take an idea to something running.</dd></div>
-          </dl>
-          <div class="tags"><span>Python</span><span>Flask</span><span>Claude API</span><span>Google APIs</span><span>GitHub Actions</span></div>
-        </article></li>
-      <li class="step" style="--i:1"><div class="lvl"><b>L2</b></div>
-        <article class="card">
-          <div class="card-top"><h3>Databases and data modeling</h3><span class="pill building">Building</span></div>
-          <dl class="lbr">
-            <div><dt>Learning</dt><dd>SQL, tables and relationships, and how an app stores what users enter.</dd></div>
-            <div><dt>Building</dt><dd>Poker ledger app: players, sessions, buy-ins, cash-outs.</dd></div>
-            <div><dt>Result</dt><dd>To be filled in when it ships.</dd></div>
-          </dl>
-          <div class="tags"><span>SQL</span><span>Schema design</span></div>
-        </article></li>
-      <li class="step" style="--i:2"><div class="lvl"><b>L3</b></div>
-        <article class="card">
-          <div class="card-top"><h3>Architecture and deployment</h3><span class="pill next">Next</span></div>
-          <dl class="lbr">
-            <div><dt>Learn</dt><dd>How frontend, backend, and database fit together, and how to put an app online.</dd></div>
-            <div><dt>Build</dt><dd>Put the ledger online for a real group of friends to use.</dd></div>
-            <div><dt>Result</dt><dd>To be filled in when it ships.</dd></div>
-          </dl>
-          <div class="tags"><span>APIs</span><span>Hosting</span><span>Auth</span></div>
-        </article></li>
-      <li class="step" style="--i:3"><div class="lvl"><b>L4</b></div>
-        <article class="card">
-          <div class="card-top"><h3>A second language</h3><span class="pill next">Next</span></div>
-          <dl class="lbr">
-            <div><dt>Learn</dt><dd>One more language beyond Python, chosen by what the next project needs.</dd></div>
-            <div><dt>Build</dt><dd>Rebuild one piece of an earlier project in it and compare.</dd></div>
-            <div><dt>Result</dt><dd>To be filled in when it ships.</dd></div>
-          </dl>
-          <div class="tags"><span>Language #2</span><span>Testing</span></div>
-        </article></li>
-    </ol>
-  </section>
-
-  <!-- PERSONAL -->
   <section class="panel" id="personal" role="tabpanel" aria-labelledby="tab-personal" hidden>
     <div class="track-head">
       <h2>Personal</h2>
@@ -294,7 +228,261 @@ footer { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wr
 </div>
 
 <script>
+/* =====================================================================
+   EDIT HERE. Each track is a list of levels, in order.
+   status: "done" | "building" | "next"
+   more.shots: image files go in an "images" folder next to index.html.
+   Text starting with "TODO:" shows in muted italics as a prompt to replace.
+   ===================================================================== */
+var TRACKS = {
+  data: {
+    title: "Data analysis",
+    intro: "From spreadsheet models to a system the plant actually used. Each level had to work on real data.",
+    levels: [
+      {
+        title: "Spreadsheet modeling", status: "done", statusLabel: "Done",
+        learned: "PivotTables, XLOOKUP, What-If Analysis, Solver, Monte Carlo simulation.",
+        built: "Inventory and queuing models for supply chain coursework.",
+        result: "A habit of testing assumptions in a model before trusting an answer.",
+        tags: ["Excel", "Solver", "Forecasting"],
+        more: {
+          summary: "Coursework in inventory modeling, queuing analysis, and Monte Carlo simulation, all built in Excel. This was my first real modeling tool.",
+          how: "Supply chain and business decision courses at ASU.",
+          lesson: "TODO: One mistake a model taught you, such as a bad assumption or a formula that quietly broke.",
+          shots: [{ src: "images/excel-model.png", caption: "TODO: A model you are proud of, with the numbers hidden if needed." }],
+          links: []
+        }
+      },
+      {
+        title: "Dashboards in Tableau", status: "done", statusLabel: "Course project",
+        learned: "Cleaning a raw dataset and choosing charts that answer one question each.",
+        built: "A college major ROI dashboard for SCM 315.",
+        result: "A raw table turned into something a reader can explore on their own.",
+        tags: ["Tableau", "Data visualization"],
+        more: {
+          summary: "The SCM 315 visualization project. I picked a college major ROI dataset and built a dashboard around it.",
+          how: "SCM 315 (Business Decision Models), with Tableau learned through the course.",
+          lesson: "TODO: What the data showed, and what you would do differently with the layout.",
+          shots: [{ src: "images/tableau-roi.png", caption: "TODO: Screenshot of the finished dashboard." }],
+          links: []
+        }
+      },
+      {
+        title: "A system at plant scale", status: "done", statusLabel: "Shipped at PepsiCo",
+        learned: "SAP data, SharePoint governance, and how to get a team to adopt a new tool.",
+        built: "One home for BOMs, vendor records, and SAP data on 1,600+ pieces of equipment, replacing a 20TB shared drive. Added QR asset tagging.",
+        result: "Supply gaps closed with the Regional VP, in an initiative projected at $1.6M+ in savings.",
+        tags: ["SharePoint", "PowerApps", "Microsoft Lists", "SAP"],
+        more: {
+          summary: "At PepsiCo/Frito-Lay this summer I built a centralized system in SharePoint, PowerApps, Microsoft Lists, and Excel that held BOMs, vendor records, and SAP data. I also designed plant-wide QR tagging with usage analytics, and worked with the Regional VP on supply gaps and expedited spend.",
+          how: "On the job. I worked from the plant's real SAP data, and wrote training modules so other departments could follow the same entry standards.",
+          lesson: "TODO: The hardest part of getting people to switch from the old shared drive.",
+          shots: [{ src: "images/pepsico-diagram.png", caption: "Company systems stay private. Add a redacted diagram of the structure instead of screenshots." }],
+          links: []
+        }
+      },
+      {
+        title: "Analysis in code", status: "next", statusLabel: "Next",
+        learned: "Planned: SQL queries, then Python with pandas for repeatable analysis.",
+        built: "Planned: player stats and trends from the poker ledger, with a short written finding.",
+        result: "To be filled in when it ships.",
+        tags: ["SQL", "Python", "pandas"],
+        more: {
+          summary: "The goal is to move from analysis I click through to analysis I can rerun with one command.",
+          how: "TODO: The course, tutorial, or book you plan to use.",
+          lesson: "TODO: Fill in after it ships.",
+          shots: [],
+          links: []
+        }
+      }
+    ]
+  },
+  cs: {
+    title: "Computer science",
+    intro: "Learning to code from the ground up by shipping small things first, then bigger ones.",
+    levels: [
+      {
+        title: "A tool I use every day", status: "done", statusLabel: "Built",
+        learned: "Python and Flask, calling an AI model and Google APIs from code, automating runs with GitHub Actions.",
+        built: "Commitment Assistant, a planner for the week across jobs, school, and clubs.",
+        result: "A working app I rely on, and proof I can take an idea to something running.",
+        tags: ["Python", "Flask", "Claude API", "Google APIs", "GitHub Actions"],
+        more: {
+          summary: "Commitment Assistant helps me manage my daily and weekly commitments across jobs, school, and clubs in one place.",
+          how: "Built with AI assistance. I learned each piece, like Flask, API calls, and scheduled runs, as a feature needed it.",
+          lesson: "TODO: A bug or design change that taught you something.",
+          shots: [{ src: "images/commitment-assistant.png", caption: "TODO: Screenshot of the app." }],
+          links: [{ label: "Code on GitHub", href: "https://github.com/anishyadavedu-gif/CommitmentTracker" }]
+        }
+      },
+      {
+        title: "Databases and data modeling", status: "building", statusLabel: "Building",
+        learned: "Learning: SQL, tables and relationships, and how an app stores what users enter.",
+        built: "Building: poker ledger app with players, sessions, buy-ins, and cash-outs.",
+        result: "To be filled in when it ships.",
+        tags: ["SQL", "Schema design"],
+        more: {
+          summary: "A home-game ledger where friends log buy-ins and cash-outs, with running stats per player. It is the project that forces me to learn real database design.",
+          how: "TODO: What you are using to learn SQL right now.",
+          lesson: "TODO: Fill in after it ships.",
+          shots: [{ src: "images/poker-ledger.png", caption: "TODO: Screenshot or sketch of the ledger screen." }],
+          links: []
+        }
+      },
+      {
+        title: "Architecture and deployment", status: "next", statusLabel: "Next",
+        learned: "Planned: how frontend, backend, and database fit together, and how to put an app online.",
+        built: "Planned: put the ledger online for a real group of friends to use.",
+        result: "To be filled in when it ships.",
+        tags: ["APIs", "Hosting", "Auth"],
+        more: {
+          summary: "Taking the ledger from my laptop to a live URL that friends can sign in to.",
+          how: "TODO: Fill in when you start.",
+          lesson: "TODO: Fill in after it ships.",
+          shots: [],
+          links: []
+        }
+      },
+      {
+        title: "A second language", status: "next", statusLabel: "Next",
+        learned: "Planned: one more language beyond Python, chosen by what the next project needs.",
+        built: "Planned: rebuild one piece of an earlier project in it and compare.",
+        result: "To be filled in when it ships.",
+        tags: ["Language #2", "Testing"],
+        more: {
+          summary: "Learning a second language to see which ideas carry over and which do not.",
+          how: "TODO: Fill in when you start.",
+          lesson: "TODO: Fill in after it ships.",
+          shots: [],
+          links: []
+        }
+      }
+    ]
+  }
+};
+
 (function () {
+  function h(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function para(label, text) {
+    var wrap = h('div');
+    wrap.appendChild(h('h4', null, label));
+    var isTodo = /^TODO:/.test(text);
+    wrap.appendChild(h('p', isTodo ? 'todo' : null, isTodo ? text.replace(/^TODO:\s*/, 'Add: ') : text));
+    return wrap;
+  }
+
+  function buildCard(lv) {
+    var card = h('article', 'card');
+    var top = h('div', 'card-top');
+    top.appendChild(h('h3', null, lv.title));
+    top.appendChild(h('span', 'pill ' + lv.status, lv.statusLabel));
+    card.appendChild(top);
+
+    var dl = h('dl', 'lbr');
+    [['Learned', lv.learned], ['Built', lv.built], ['Result', lv.result]].forEach(function (p) {
+      var d = h('div');
+      d.appendChild(h('dt', null, p[0]));
+      d.appendChild(h('dd', null, p[1]));
+      dl.appendChild(d);
+    });
+    card.appendChild(dl);
+
+    var tags = h('div', 'tags');
+    lv.tags.forEach(function (t) { tags.appendChild(h('span', null, t)); });
+    card.appendChild(tags);
+
+    var m = lv.more;
+    var det = h('details', 'more');
+    var sum = h('summary');
+    sum.appendChild(h('span', 'chev'));
+    sum.appendChild(h('span', 'more-lbl', 'See more'));
+    sum.appendChild(h('span', 'less', 'See less'));
+    det.appendChild(sum);
+
+    var body = h('div', 'more-body');
+    var text = h('div', 'more-text');
+    text.appendChild(para('Summary', m.summary));
+    text.appendChild(para('How I learned it', m.how));
+    text.appendChild(para('What went wrong, or what I would change', m.lesson));
+    if (m.links && m.links.length) {
+      var lk = h('div', 'links');
+      m.links.forEach(function (l) {
+        var a = h('a', null, l.label + ' ↗');
+        a.href = l.href; a.target = '_blank'; a.rel = 'noopener';
+        lk.appendChild(a);
+      });
+      text.appendChild(lk);
+    }
+    body.appendChild(text);
+
+    if (m.shots && m.shots.length) {
+      var shots = h('div', 'shots');
+      m.shots.forEach(function (s) {
+        var fig = h('figure', 'shot');
+        var img = document.createElement('img');
+        img.src = s.src; img.alt = lv.title + ' screenshot'; img.loading = 'lazy';
+        img.addEventListener('error', function () {
+          var slot = h('div', 'slot', 'Screenshot slot: add the file ' + s.src);
+          fig.replaceChild(slot, img);
+        });
+        fig.appendChild(img);
+        fig.appendChild(h('figcaption', /^TODO:/.test(s.caption) ? 'todo' : null, s.caption.replace(/^TODO:\s*/, 'Add: ')));
+        shots.appendChild(fig);
+      });
+      body.appendChild(shots);
+    } else {
+      body.style.gridTemplateColumns = '1fr';
+    }
+    det.appendChild(body);
+    card.appendChild(det);
+    return card;
+  }
+
+  function buildTrack(key) {
+    var t = TRACKS[key], root = document.getElementById(key);
+    var done = t.levels.filter(function (l) { return l.status === 'done'; }).length;
+
+    var head = h('div', 'track-head');
+    head.appendChild(h('h2', null, t.title));
+    head.appendChild(h('p', null, t.intro));
+    var row = h('div', 'head-row');
+    var meter = h('div', 'meter');
+    meter.setAttribute('aria-label', 'Level ' + done + ' of ' + t.levels.length + ' reached');
+    t.levels.forEach(function (l) { meter.appendChild(h('i', l.status === 'done' ? 'on' : '')); });
+    meter.appendChild(h('span', null, 'Level ' + done + ' of ' + t.levels.length));
+    row.appendChild(meter);
+    var btn = h('button', 'expand-all', 'Expand all');
+    btn.type = 'button';
+    btn.addEventListener('click', function () {
+      var all = root.querySelectorAll('details.more');
+      var open = btn.textContent === 'Expand all';
+      Array.prototype.forEach.call(all, function (d) { d.open = open; });
+      btn.textContent = open ? 'Collapse all' : 'Expand all';
+    });
+    row.appendChild(btn);
+    head.appendChild(row);
+    root.appendChild(head);
+
+    var ol = h('ol', 'steps');
+    t.levels.forEach(function (lv, i) {
+      var li = h('li', 'step' + (lv.status === 'done' ? ' done' : ''));
+      li.style.setProperty('--i', i);
+      var lvl = h('div', 'lvl');
+      lvl.appendChild(h('b', null, 'L' + (i + 1)));
+      li.appendChild(lvl);
+      li.appendChild(buildCard(lv));
+      ol.appendChild(li);
+    });
+    root.appendChild(ol);
+  }
+  buildTrack('data');
+  buildTrack('cs');
+
   var tabs = Array.prototype.slice.call(document.querySelectorAll('nav button'));
   var panels = { data: document.getElementById('data'), cs: document.getElementById('cs'), personal: document.getElementById('personal') };
 
@@ -351,8 +539,8 @@ footer { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wr
     t = setTimeout(function () { if (!panels.personal.hidden) drawChess(); }, 120);
   });
 
-  var h = (location.hash || '').replace('#', '');
-  show(h || 'data');
+  var hsh = (location.hash || '').replace('#', '');
+  show(hsh || 'data');
 })();
 </script>
 
